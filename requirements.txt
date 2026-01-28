@@ -1,0 +1,11 @@
+# Python 3.11
+spacy==3.7.2
+langchain==0.1.10
+langchain-community==0.0.18
+langchain-core==0.1.28
+langchain-text-splitters==0.0.1
+sentence-transformers==2.2.2
+faiss-cpu==1.7.4
+transformers==4.36.2
+torch==2.1.2
+requests==2.31.0
