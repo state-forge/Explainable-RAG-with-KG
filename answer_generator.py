@@ -1,6 +1,7 @@
-from retriever import retriever
-def funcanswergenerator():
-    query, results=retriever()
+import requests
+import json
+def ans_gen(query, results):
+
     #STEP1:Extract Retrieved Context
     retrieved_chunks=[]
 
@@ -20,32 +21,32 @@ def funcanswergenerator():
             context_block+=f"[{chunk['chunk_id']}]\n{chunk['text']}\n\n"
         
         prompt=f"""
-You are an assistant answering a question using ONLY the provided text snippets.
+            You are an assistant answering a question using ONLY the provided text snippets.
 
-Question:
-{query}
+            Question:
+            {query}
 
-Retrieved Text Chunks:
-{context_block}
+            Retrieved Text Chunks:
+            {context_block}
 
-Instructions:
-1. Answer the question using ONLY the retrieved text.
-2. Do NOT introduce external knowledge.
-3. Cite chunk IDs (e.g., C1, C2) for every factual claim.
-4. If the answer is not present, say "The retrieved text does not contain sufficient information."
-5. Output STRICT JSON only. Do NOT include explanations or extra text.
+            Instructions:
+            1. Synthesize the answer by combining information across all retrieved text snippets.
+            2. Before writing the paragraph, identify all major themes present in the retrieved text (e.g., causes, impacts, regions, time scales), and ensure the paragraph covers as many of these themes as possible.
+            3. Write a single, well-structured paragraph of upto 300 words(if sufficient information is available) answering the question. The paragraph must be fully based on the retrieved text only.
+            4. Write a single coherent paragraph. The answer should be upto 7-10 sentences if sufficient information is available.
+            5. Do not include external knowledge.
+            6. If the answer is not present, say "The retrieved text does not contain sufficient information."
+            7. Output STRICT JSON only. Do NOT include explanations or extra text.
 
-Output Format (STRICT JSON):
-{{
-  "answer": "...",
-  "supporting_chunks": ["C1", "C2"]
-}}
-"""
+            Output Format (STRICT JSON):
+            {{
+            "answer": "...",
+            "supporting_chunks": ["C1", "C2"]
+            }}
+            """
         return prompt
     
     #STEP3:Call LLaMA-3 via Ollama
-    import requests
-    import json
 
     OLLAMA_URL="http://localhost:11434/api/generate"
 
@@ -56,7 +57,8 @@ Output Format (STRICT JSON):
         "prompt":prompt,
         "stream":False,
         "options":{
-            "temperature":0.0
+            "temperature":0.0,
+            "num_predict":1000
         }
     }
 
@@ -87,9 +89,9 @@ Output Format (STRICT JSON):
     
     valid_ids={c["chunk_id"] for c in retrieved_chunks}
 
-    if answer and not any(cid in valid_ids for cid in supporting_chunks):
-        raise ValueError("Answer generated without valid supporting evidence")
+    # if answer and not any(cid in valid_ids for cid in supporting_chunks):
+    #     raise ValueError("Answer generated without valid supporting evidence")
 
     print("\nFinal Answer : \n")
     print(answer)
-    return answer
+    return

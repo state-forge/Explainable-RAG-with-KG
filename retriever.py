@@ -1,12 +1,16 @@
 import os
+os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"  # Disables the warning
 from langchain_community.document_loaders import FileSystemBlobLoader
 from langchain_community.document_loaders.generic import GenericLoader
 from langchain_community.document_loaders.parsers import PyPDFParser
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_community.vectorstores import FAISS
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-def retriever():
+def ret( ):
     # Embedding setup 
     model_name = "BAAI/bge-small-en"
     model_kwargs = {"device": "cpu"}
@@ -29,7 +33,7 @@ def retriever():
         update = "y"
 
     if update.lower() == "y":
-        filepath = input("What is the folder path: ")
+        filepath = input("Enter the Folder Path: ")
         
         if not os.path.exists(filepath):
             print(f"Error: Path '{filepath}' does not exist!")
@@ -86,17 +90,16 @@ def retriever():
             return None, None
 
     # Search
-    query = input("What is question you want to ask: ") 
+    query = input("Enter your query: ") 
     
     if not query.strip():
         print("Query cannot be empty!")
         return None, None
     
     try:
-        results = db.similarity_search(query, 15)
+        results = db.similarity_search(query, 30)
         return query, results
         
     except Exception as e:
         print(f"Error during search: {e}")
         return None, None
-retriever()

@@ -1,11 +1,12 @@
-from retriever import retriever
 # Basic version of the NLP implementation, without the use of dependency parsing techniques.
 import spacy
-def nlp_graph_builder():
-    nlp = spacy.load("en_core_web_md")
-
-    query, chunks=retriever()
-
+def nlp_graph_builder(query, chunks):
+    try:
+        nlp = spacy.load("en_core_web_md")
+    except OSError:
+        print("Error: spaCy model 'en_core_web_md' not found.")
+        print("Run: python -m spacy download en_core_web_md")
+        return
     # Filters the chunks from the previous code file, by testing the similarity match with the query, using the NLP library 'spaCy'.
     # It then returns the top k matching statements in the form of a list of sentences. 
     # k could be adjusted accordingly by the developers
@@ -17,6 +18,10 @@ def nlp_graph_builder():
         doc=nlp(new_chunk)
 
         for sentence in doc.sents:
+            if len(sentence.text.strip()) < 3:
+                continue
+            if not sentence.has_vector:
+                continue
             score = sentence.similarity(query_doc)
             sents_list.append((score, sentence.text))
 
@@ -37,7 +42,7 @@ def nlp_graph_builder():
             return text.capitalize()
         else:
             return text.upper()
-    ents = {}
+    ents = set()
     for doc in sent_docs:
         for ent in doc.ents:
             ents.add(normalize(ent.text))
@@ -46,7 +51,7 @@ def nlp_graph_builder():
 
     for ent in ents:
         node_ents.append(format(ent))
-
+    print("The Knowledge Graph for the above query is:")
     for i in range(len(node_ents)-1):
         print(node_ents[i]+" :")
         for j in range(i+1, len(node_ents)):
